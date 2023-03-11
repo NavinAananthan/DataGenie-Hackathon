@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import adfuller,kpss
 import statsmodels.api as sm
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 
 def check_null(data):
@@ -15,6 +16,35 @@ def check_null(data):
 
     return new_data
         
+
+def check_stationarity(data):
+
+    result = adfuller(data)
+    print('ADF Statistic: %f' % result[0])
+    print('p-value: %f' % result[1])
+    print('Critical Values:')
+    for key, value in result[4].items():
+        print('\t%s: %.3f' % (key, value))
+
+    if result[1] > 0.05:
+        return 0
+    else:
+        return 1
+
+
+
+def transform(df):
+    ts_log = np.log(df)
+    ts_diff = ts_log.diff()
+    ts_diff.dropna(inplace=True)
+    return ts_log, ts_diff
+
+
+def retransform(ts_log,ts_diff):
+    inv_diff=ts_log.shift(1)+ts_diff
+    org=np.exp(inv_diff)
+    return org
+
 
     
 def check_seasonality(data):
@@ -50,7 +80,56 @@ def check_seasonality(data):
     else:
         return 0
 
-   
+
+
+def SARIMA(df):
+    
+    ts_diff=df['point_value']
+    if(check_stationarity(df)==0):
+        ts_log, ts_diff=transform(df['point_value'])
+
+    acf_vals, confint = sm.tsa.acf(data['point_value'], nlags=50, alpha=0.05)
+    pacf_vals = sm.tsa.pacf(data['point_value'], nlags=50)
+
+    # find the lags where the ACF or PACF values are above the significance threshold
+    acf_lags = [(i+1) for i in range(len(acf_vals)) if abs(acf_vals[i]) >= confint[i, 1]]
+    pacf_lags = [(i+1) for i in range(len(pacf_vals)) if abs(pacf_vals[i]) >= confint[i, 1]]
+
+    print(acf_lags)
+    print(pacf_lags)
+
+    d = 0
+    df_diff = data.diff().dropna()
+    while True:
+        result = adfuller(df_diff['point_value'].diff().dropna())
+        pvalue = result[1]
+        if pvalue < 0.05:
+            break
+        d += 1
+        df_diff = df_diff.diff().dropna()
+
+    train=ts_diff.iloc[:80,:]
+    test=ts_diff.iloc[80:,:]
+
+    model = sm.tsa.statespace.SARIMAX(train, order=(pacf_lags, d, acf_lags), seasonal_order=(pacf_lags, d, acf_lags,12))
+    result=model.fit()
+    predict=result.forecast(steps=len(test))
+    predictions_retransformed = np.exp(predict + train.iloc[-1]) # last value of training set
+    predictions_retransformed_diff = predictions_retransformed.diff()
+    predictions_retransformed_diff[0] += df['point_value'].iloc[79]
+    for i in range(1, len(predictions_retransformed_diff)):
+        predictions_retransformed_diff[i] += predictions_retransformed_diff[i-1]
+
+    test['predicted_values'] = predictions_retransformed_diff
+
+    plt.plot(data['original_column'], label='Original')
+    plt.plot(test['predicted_values'], label='Predicted')
+    plt.legend()
+    plt.show()
+    
+
+       
+
         
 
 data=pd.read_csv("sample_9.csv")
@@ -62,7 +141,10 @@ data=data.set_index(['point_timestamp'])
 data=check_null(data)
 #print(data)
 
-print(check_seasonality(data))
+seasonal=check_seasonality(data)
+
+if(seasonal==1):
+    SARIMA(data)
 
 #plt.plot(data)
 #plt.show()
