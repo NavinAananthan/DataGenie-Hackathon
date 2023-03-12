@@ -15,6 +15,7 @@ Folder Structure
 
      - The process of creating a new dataset is based on extracting the features from the time series dataset for hourly, weekly, monthly etc and check if their seasonal stationary trend and other set of features and create a new dataset based on the features
      - These features are add into a new Data.csv file based on the extracted features we find which model to use and put it in the target column for eg it is seasonal we put SARIMA and seasonal column is set true and other columns are set to false and even there is a column for monthly, weekly, daily or hourly data.
+     - Found the seasonality trend and stationarity based on ADF test and kpss test
 * Classifier.py:-
 
     - The Data.csv file is then label encode based on the features for true false it is set to 1 and 0 and for target variables it is encoded and we split the dataset into training and testing dataset
@@ -26,7 +27,8 @@ Folder Structure
 * timeseriesmodel.py
 
    - Here we get the best model and accordingly we then forecast and predict the time series data by passing the time series dataset.
-   - Here i have assumed the parameter for the models and have given as it is mentioned we should not use Auto arima to find the best prarmeters
+   - Here i have assumed the parameter for the models and have given as it is mentioned we should not use Auto arima to find the best prarmeters.
+   - The time series model which it gets check for the stationarity if it is not stationary it performs logarithmic transformation and differencing to make it stationary and forecast and retransform it back.
 * frontend.html
 
    - Here we create a front end pasge using html and style it with css and use javascript functions to get the file from the user and send it to the server.
@@ -39,8 +41,10 @@ Folder Structure
 
  * problems occured :-
  
-     - The first problem occured is it is not forecasting correctly for the given sample time series dataset but working for other online time series dataset
-     - Didnt have time to implement the date functionality to find the predicted value for particular date
-     - Error while plotting in the UI part 
+     - The first problem occured is it is not forecasting correctly for the given sample time series dataset but working for other online time series dataset.
+     - The forecast is not properly plotting while converting it into stationary.
+     - While doing API call for the date 
+     - Didnt have time to implement the date functionality to find the predicted value for particular date.
+     - Error while plotting in the UI part.
   
  * Note: There are many features to take in consideration for the time series dataset but i have choosen only limited. 
