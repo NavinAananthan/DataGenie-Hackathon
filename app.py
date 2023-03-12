@@ -1,15 +1,15 @@
 from flask import Flask, request, render_template
 from classifier import *
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from statsmodels.tsa.seasonal import seasonal_decompose
-from statsmodels.tsa.stattools import adfuller
-from statsmodels.tsa.stattools import kpss
-from statsmodels.tsa.statespace.sarimax import SARIMAX
-
 from DatasetGeneration import *
 from classifier import *
+
+
+def encoder(flag):
+    if(flag):
+        return 1
+    else:
+        return 0
 
 
 app = Flask(__name__)
@@ -34,7 +34,11 @@ def upload():
     stationaryity=isStationary(data)
     trend=findTrend(data)
 
-    
+    seasonlaity=encoder(seasonlaity)
+    stationaryity=encoder(stationaryity)
+    trend=encoder(trend)
+
+
 
     return "Sucessfully Uploaded"
     
