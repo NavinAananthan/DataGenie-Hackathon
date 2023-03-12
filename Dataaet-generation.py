@@ -126,10 +126,12 @@ for filename in os.listdir(datafolder):
 
     df=missing_value(df)
 
-    print("************ Missing value ************",df.isna().sum()," File Upload ",filename)
+    #print("************ Missing value ************",df.isna().sum()," File Upload ",filename)
     
 
     data_type=pd.infer_freq(df.index)
+    if(data_type==None):
+        data_type='H'
 
 
     Trend=findTrend(df)
@@ -138,10 +140,20 @@ for filename in os.listdir(datafolder):
 
     if(Trend):
         model_type='ETS'
-    elif(Seasonal):
+    if(Seasonal):
         model_type='SARIMA'
-    elif(Stationary):
+    if(Stationary):
         model_type='ARIMA'
+    if(Trend and Stationary):
+        model_type='ARIMA'
+    if(Trend and Seasonal):
+        model_type='SARIMA'
+    if(Stationary and Seasonal):
+        model_type='SARIMA'
+    if(Stationary and Seasonal and Trend):
+        model_type='SARIMAX'
+    if(not Stationary and not Trend and not Seasonal):
+        model_type='SES'
 
     data=pd.DataFrame({'Date_type':data_type,'Trend':Trend,'Seasonal':Seasonal,'Stationary':Stationary,'model':model_type},index=[i])
     i=i+1
@@ -149,6 +161,4 @@ for filename in os.listdir(datafolder):
 
 new_data.to_csv('Data.csv',index=False)
     
-
-
 
