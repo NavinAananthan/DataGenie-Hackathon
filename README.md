@@ -35,4 +35,10 @@ Folder Structure
 ![image](https://user-images.githubusercontent.com/81963819/224550095-e9595c27-5f4e-485b-b3e7-c30f4752648e.png)
 
 
+ * problems occured :-
  
+     - The first problem occured is it is not forecasting correctly for the given sample time series dataset but working for other online time series dataset
+     - Didnt have time to implement the date functionality to find the predicted value for particular date
+     - Error while plotting in the UI part 
+  
+ * Note: There are many features to take in consideration for the time series dataset but i have choosen only limited. 
