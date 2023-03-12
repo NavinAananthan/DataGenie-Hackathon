@@ -25,7 +25,8 @@ Folder Structure
     - Then we pass the best model to timeseriesmodel.py which we have imported it in this file.
 * timeseriesmodel.py
 
-   - Here we get the best model and accordingly we then forecast and predict the time series data by passing the time series dataset
+   - Here we get the best model and accordingly we then forecast and predict the time series data by passing the time series dataset.
+   - Here i have assumed the parameter for the models and have given as it is mentioned we should not use Auto arima to find the best prarmeters
 * frontend.html
 
    - Here we create a front end pasge using html and style it with css and use javascript functions to get the file from the user and send it to the server.
