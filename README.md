@@ -3,20 +3,36 @@
 ```
 Folder Structure
 |__
-  |_Model-Classification.py(Finding the best model for a given Time series dataset)
-  |_Client.py(fetch data from database)
+  |_DatasetGeneration.py(Creates the best time series model dataset)
+  |_classifier.py(Classifies the time series)
+  |_timeseriesmodel.py(choose the appropriate model)
+  |_app.py(Server side to get dataset)
   |_frontend.html(Fronten page to upload CSV file)
+  |_Data.csv(dataset for best model and features)
  ```
 
-* Model-Classification.py:-
+* DatasetGeneration.py:-
 
-     - This file takes a time series data as a input from the user and preprocess it such as filling null values, removing outliers from the dataset and extracting the features from the data such as extracting seasonality, trend, stationarity, Autocorrelation and other external factors which takes into consideration and finds the appropriate model based on the features extracted.
-     - After extracting the features we run every time series dataset into it and create a CSV file accordingly for training it in a random forestclassifier to choose the best model accordingly
-* Client.py:-
+     - The process of creating a new dataset is based on extracting the features from the time series dataset for hourly, weekly, monthly etc and check if their seasonal stationary trend and other set of features and create a new dataset based on the features
+     - These features are add into a new Data.csv file based on the extracted features we find which model to use and put it in the target column for eg it is seasonal we put SARIMA and seasonal column is set true and other columns are set to false and even there is a column for monthly, weekly, daily or hourly data.
+* Classifier.py:-
 
-    - This process is to fetch the file from the user and pass the dataframe/CSV file into the model-classification which is generated as a pickle file and pass the dataframe into it and find the appropriate model and forecast the future based on the time series data
-    - The user sends API request for a particular month to generate the predicted particular value
-* Frontend.html
+    - The Data.csv file is then label encode based on the features for true false it is set to 1 and 0 and for target variables it is encoded and we split the dataset into training and testing dataset
+    - Then we pass the training dataset into XGBoost classifier model to train our best time series model and then we predic the test data set.
+* app.py
 
-    - This Is to create a front end page to upload a CSV file and plot the forecast for the given dataset
+    - This is a backend to connect with frontend here the user uploads the dataset and we get it here and here we preprocess the file and finc the best time series model by importing the classifier file and find the best model.
+    - Then we pass the best model to timeseriesmodel.py which we have imported it in this file.
+* timeseriesmodel.py
+
+   - Here we get the best model and accordingly we then forecast and predict the time series data by passing the time series dataset
+* frontend.html
+
+   - Here we create a front end pasge using html and style it with css and use javascript functions to get the file from the user and send it to the server.
+   - I have attached below the creen shot of it.
+ 
+ 
+![image](https://user-images.githubusercontent.com/81963819/224550095-e9595c27-5f4e-485b-b3e7-c30f4752648e.png)
+
+
  
