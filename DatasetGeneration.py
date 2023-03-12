@@ -161,11 +161,11 @@ for filename in os.listdir(datafolder):
     if(Trend and Stationary):
         model_type='ARIMA'
     if(Trend and Seasonal):
-        model_type='SARIMA'
+        model_type='XGBOOST'
     if(Stationary and Seasonal):
         model_type='SARIMA'
     if(Stationary and Seasonal and Trend):
-        model_type='SARIMAX'
+        model_type='SARIMA'
     if(not Stationary and not Trend and not Seasonal):
         model_type='SES'
 
