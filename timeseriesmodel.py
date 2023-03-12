@@ -63,7 +63,7 @@ def ETS(df):
     model_fit = model.fit()
     predictions = model_fit.predict(start=len(df), end=len(df)-1)
 
-    plt.plot(df.index, df['value'], label='Actual')
+    plt.plot(df.index, df['Value'], label='Actual')
     # plt.plot(.index, predictions, label='Predicted')
     plt.legend()
     plt.title('Actual vs Predicted')
@@ -78,7 +78,7 @@ def arima(df):
     model_fit = model.fit()
     predictions = model_fit.predict(start=len(df), end=len(df)-1, dynamic=False)
 
-    plt.plot(df.index, df['value'], label='Actual')
+    plt.plot(df.index, df['Value'], label='Actual')
     # plt.plot(.index, predictions, label='Predicted')
     plt.legend()
     plt.title('Actual vs Predicted')
@@ -91,16 +91,16 @@ def arima(df):
 def xgboost(data):
 
     for i in range(1, 13):
-        data[f'lag_{i}'] = data['value'].shift(i)
+        data[f'lag_{i}'] = data['Value'].shift(i)
 
     train_data = data.iloc[:-20, :]
     test_data = data.iloc[-20:, :]
 
-    X_train = train_data.drop('value', axis=1)
-    y_train = train_data['value']
+    X_train = train_data.drop('Value', axis=1)
+    y_train = train_data['Value']
 
-    X_test = test_data.drop('value', axis=1)
-    y_test = test_data['value']
+    X_test = test_data.drop('Value', axis=1)
+    y_test = test_data['Value']
 
     model = xgb.XGBRegressor()
     model.fit(X_train, y_train)
