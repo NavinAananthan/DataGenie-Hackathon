@@ -29,7 +29,8 @@ Folder Structure
 * frontend.html
 
    - Here we create a front end pasge using html and style it with css and use javascript functions to get the file from the user and send it to the server.
-   - I have attached below the creen shot of it.
+   - Error occured while plotting the forecast in UI part
+   - I have attached below the screen shot of it.
  
  
 ![image](https://user-images.githubusercontent.com/81963819/224550095-e9595c27-5f4e-485b-b3e7-c30f4752648e.png)
