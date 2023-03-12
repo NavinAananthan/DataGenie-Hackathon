@@ -1,34 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html>  
 <head>
-	<title>Upload CSV</title>
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<title>Choose Your Best Model</title>
+	<style>
+		h1 {
+			color: #333;
+			font-size: 36px;
+			margin-bottom: 20px;
+			text-align: center;
+			font-family: 'Courier New', Courier, monospace;
+		}
+		
+		form.upload-form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin-top: 50px;
+			margin-bottom: 20px;
+		}
+		
+		input#csvfile {
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			margin-right: 10px;
+		}
+		
+		button[type="submit"] {
+			background-color: #4CAF50;
+			color: white;
+			padding: 10px 20px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			transition: background-color 0.3s;
+			margin-top: 40px;
+		}
+		
+		button[type="submit"]:hover {
+			background-color: #3e8e41;
+		}
+		
+		div#status {
+			text-align: center;
+			font-size: 24px;
+			color: #333;
+		}
+		
+		progress {
+			width: 100%;
+			height: 20px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+		}
+	</style>
 </head>
 <body>
-	<h1>Upload a CSV file</h1>
-	<input type="file" id="file" name="file">
-	<button type="button" onclick="upload()">Upload</button>
-	<div id="result"></div>
-	<script type="text/javascript">
-		function upload() {
-			var fileInput = document.getElementById('file');
-			var file = fileInput.files[0];
-			var formData = new FormData();
-			formData.append('file', file);
-			$.ajax({
-				url: '/process_csv',
-				type: 'POST',
-				data: formData,
-				contentType: false,
-				processData: false,
-				success: function(response) {
-					$('#result').text('MAPE value: ' + response.mape);
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					console.log('Error:', textStatus, errorThrown);
-				}
+	<h1>Choose Your best Time Series Model </h1>
+	<form id="upload-form" class="upload-form" method="post" enctype="multipart/form-data">
+		<input id="csvfile" type="file" name="csvfile" accept=".csv">
+		<button type="submit">Upload</button>
+	</form>
+  
+	<div id="status"></div>
+  
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+		$(function() {
+			$('#upload-form').submit(function(e) {
+				e.preventDefault();
+				var formData = new FormData(this);
+				$.ajax({
+					url: '/upload',
+					type: 'POST',
+					data: formData,
+					cache: false,
+					contentType: false,
+					processData: false,
+					xhr: function() {
+						var xhr = new window.XMLHttpRequest();
+						xhr.upload.addEventListener('progress', function(evt) {
+							if (evt.lengthComputable) {
+								var percentComplete = evt.loaded / evt.total;
+								$('#status').html('<p>Uploading file...</p><progress value="' + evt.loaded + '" max="' + evt.total + '"></progress>');
+							}
+						}, false);
+						return xhr;
+					},
+					success: function(data) {
+						$('#status').text('File uploaded successfully!');
+						// Send request to the server to process the uploaded file
+						$.ajax({
+							url: '/process_file',
+							type: 'POST',
+							success: function(response) {
+								// Handle the response from the server
+							},
+							error: function(xhr, status, error) {
+								console.log('Error processing file: ' + error);
+							}
+						});
+					},
+					error: function(xhr, status, error) {
+						console.log('Upload error: ' + error);
+					}
+				});
 			});
-		}
+		});
 	</script>
 </body>
 </html>
