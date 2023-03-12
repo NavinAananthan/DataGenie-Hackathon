@@ -90,6 +90,11 @@ def missing_value(df):
 
     return df_ffill
 
+def find_datatype(df):
+    data_type=pd.infer_freq(df.index)
+    if(data_type==None):
+        data_type='H'
+    return data_type
 
 # Load time series data into a Pandas dataframe
 # df = pd.read_csv('sample_9.csv')
@@ -105,6 +110,15 @@ def missing_value(df):
 # Stationary=isStationary(df)
 # findACF(df)
 
+
+def preprocess(df):
+    df=df.drop(df.columns[0],axis=1)
+    df['point_timestamp']=pd.to_datetime(df['point_timestamp'],infer_datetime_format=True)
+    df.columns=["Date","Value"]
+    df.set_index('Date',inplace=True)
+    df=missing_value(df)
+
+    return df
 
 
 datafolder="E:\DataGenie-Hackathon\Dataset"
@@ -161,4 +175,6 @@ for filename in os.listdir(datafolder):
 
 new_data.to_csv('Data.csv',index=False)
     
+
+
 
