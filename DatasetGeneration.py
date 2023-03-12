@@ -167,7 +167,7 @@ for filename in os.listdir(datafolder):
     if(Stationary and Seasonal and Trend):
         model_type='SARIMA'
     if(not Stationary and not Trend and not Seasonal):
-        model_type='SES'
+        model_type='XGBOOST'
 
     data=pd.DataFrame({'Date_type':data_type,'Trend':Trend,'Seasonal':Seasonal,'Stationary':Stationary,'model':model_type},index=[i])
     i=i+1
