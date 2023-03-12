@@ -6,6 +6,41 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 import xgboost as xgb
+from statsmodels.tsa.stattools import adfuller,kpss
+
+
+def make_stationary(ts, lag=1):
+    # Differencing to make the series stationary
+    diff = ts.diff(lag).dropna()
+    return diff
+
+def make_non_stationary(ts, lag=1):
+    # Cumulative sum to make the series non-stationary
+    cumsum = ts.cumsum()
+    return pd.Series([np.nan]*lag + cumsum.tolist(), index=ts.index)
+
+def transform1(ts):
+    # Apply log transformation to make the series more stationary
+    return np.log(ts)
+
+def retransform1(ts):
+    # Apply exponentiation to revert back the log transformation
+    return np.exp(ts)
+
+def check_stationarity(data):
+
+    result = adfuller(data)
+    print('ADF Statistic: %f' % result[0])
+    print('p-value: %f' % result[1])
+    print('Critical Values:')
+    for key, value in result[4].items():
+        print('\t%s: %.3f' % (key, value))
+
+    if result[1] > 0.05:
+        return 0
+    else:
+        return 1
+
 
 
 def sarima(df):
