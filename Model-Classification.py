@@ -1,23 +1,11 @@
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from statsmodels.tsa.stattools import adfuller,kpss
-import statsmodels.api as sm
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+import numpy as np
+from statsmodels.tsa.stattools import acf
+from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.stattools import adfuller, kpss
+import os
 
 
-def check_null(data):
-    null=data.isnull().sum()
-    for index,value in null.items():
-        if value!=0:
-            new_data=data.fillna(method='bfill')
-        else:
-            new_data=data
-
-    return new_data
-        
-    
-    
 def findTrend(df):
 
     autocorr = acf(df['Value'], nlags=len(df)-1)
@@ -95,137 +83,72 @@ def findACF(df):
     # Print the autocorrelation coefficients for each lag
     for lag, corr in enumerate(autocorr):
         print(f"Lag {lag+1}: {corr}")
-        
-        
-
-def check_stationarity(data):
-
-    result = adfuller(data)
-    print('ADF Statistic: %f' % result[0])
-    print('p-value: %f' % result[1])
-    print('Critical Values:')
-    for key, value in result[4].items():
-        print('\t%s: %.3f' % (key, value))
-
-    if result[1] > 0.05:
-        return 0
-    else:
-        return 1
 
 
+def missing_value(df):
+    df_ffill = df.ffill()
 
-def transform(df):
-    ts_log = np.log(df)
-    ts_diff = ts_log.diff()
-    ts_diff.dropna(inplace=True)
-    return ts_log, ts_diff
+    return df_ffill
 
 
-def retransform(ts_log,ts_diff):
-    inv_diff=ts_log.shift(1)+ts_diff
-    org=np.exp(inv_diff)
-    return org
+# Load time series data into a Pandas dataframe
+# df = pd.read_csv('sample_9.csv')
+# df=pd.read_csv('sample_9.csv')
+# df=df.drop(df.columns[0],axis=1)
+# df['point_timestamp']=pd.to_datetime(df['point_timestamp'],infer_datetime_format=True)
+
+# df.columns=["Month","Value"]
+# df.set_index('Month',inplace=True)
+
+# Trend=findTrend(df)
+# Seasonal=isSeasonal(df)
+# Stationary=isStationary(df)
+# findACF(df)
 
 
+
+datafolder="E:\DataGenie-Hackathon\Dataset"
+results=[]
+i=0
+new_data = pd.DataFrame(columns=['Date_type', 'Trend', 'Seasonal','Stationary','model'])
+
+for filename in os.listdir(datafolder):
+    df = pd.read_csv(os.path.join(datafolder, filename))
+
+    df=df.drop(df.columns[0],axis=1)
+    df['point_timestamp']=pd.to_datetime(df['point_timestamp'],infer_datetime_format=True)
+    df.columns=["Date","Value"]
+    df.set_index('Date',inplace=True)
     
-def check_seasonality(data):
+    # print(df.isna().any())
+    # if(df.isna().any()):
+    #     df=missing_value(df)
 
-    # Perform the ADF test to check for stationarity
-    adf_result = adfuller(data['point_value'])
-    print('ADF Statistic:', adf_result[0])
-    print('p-value:', adf_result[1])
-    print('Critical Values:', adf_result[4])
+    df=missing_value(df)
 
-    # Perform the KPSS test to check for trend stationarity
-    kpss_result = kpss(data['point_value'])
-    print('KPSS Statistic:', kpss_result[0])
-    print('p-value:', kpss_result[1])
-    print('Critical Values:', kpss_result[3])
-
-    # Compare the results of the ADF and KPSS tests
-    if adf_result[1] < 0.05 and kpss_result[1] < 0.05:
-        if adf_result[0] < adf_result[4]['5%']:
-            return 0
-        else:
-            return 0
-    elif adf_result[1] < 0.05 and kpss_result[1] >= 0.05:
-        if adf_result[0] < adf_result[4]['5%']:
-            return 0
-        else:
-            return 0
-    elif adf_result[1] >= 0.05 and kpss_result[1] < 0.05:
-        if kpss_result[0] < kpss_result[3]['5%']:
-            return 0
-        else:
-            return 1
-    else:
-        return 0
-
-
-
-def SARIMA(df):
-    
-    ts_diff=df['point_value']
-    if(check_stationarity(df)==0):
-        ts_log, ts_diff=transform(df['point_value'])
-
-    acf_vals, confint = sm.tsa.acf(data['point_value'], nlags=50, alpha=0.05)
-    pacf_vals = sm.tsa.pacf(data['point_value'], nlags=50)
-
-    # find the lags where the ACF or PACF values are above the significance threshold
-    acf_lags = [(i+1) for i in range(len(acf_vals)) if abs(acf_vals[i]) >= confint[i, 1]]
-    pacf_lags = [(i+1) for i in range(len(pacf_vals)) if abs(pacf_vals[i]) >= confint[i, 1]]
-
-    print(acf_lags)
-    print(pacf_lags)
-
-    d = 0
-    df_diff = data.diff().dropna()
-    while True:
-        result = adfuller(df_diff['point_value'].diff().dropna())
-        pvalue = result[1]
-        if pvalue < 0.05:
-            break
-        d += 1
-        df_diff = df_diff.diff().dropna()
-
-    train=ts_diff.iloc[:80,:]
-    test=ts_diff.iloc[80:,:]
-
-    model = sm.tsa.statespace.SARIMAX(train, order=(pacf_lags, d, acf_lags), seasonal_order=(pacf_lags, d, acf_lags,12))
-    result=model.fit()
-    predict=result.forecast(steps=len(test))
-    predictions_retransformed = np.exp(predict + train.iloc[-1]) # last value of training set
-    predictions_retransformed_diff = predictions_retransformed.diff()
-    predictions_retransformed_diff[0] += df['point_value'].iloc[79]
-    for i in range(1, len(predictions_retransformed_diff)):
-        predictions_retransformed_diff[i] += predictions_retransformed_diff[i-1]
-
-    test['predicted_values'] = predictions_retransformed_diff
-
-    plt.plot(data['original_column'], label='Original')
-    plt.plot(test['predicted_values'], label='Predicted')
-    plt.legend()
-    plt.show()
+    print("************ Missing value ************",df.isna().sum()," File Upload ",filename)
     
 
-       
+    data_type=pd.infer_freq(df.index)
 
-        
 
-data=pd.read_csv("sample_9.csv")
-data=data.drop(data.columns[0],axis=1)
+    Trend=findTrend(df)
+    Seasonal=isSeasonal(df)
+    Stationary=isStationary(df)
 
-data['point_timestamp']=pd.to_datetime(data['point_timestamp'],infer_datetime_format=True)
-data=data.set_index(['point_timestamp'])
+    if(Trend):
+        model_type='ETS'
+    elif(Seasonal):
+        model_type='SARIMA'
+    elif(Stationary):
+        model_type='ARIMA'
 
-data=check_null(data)
-#print(data)
+    data=pd.DataFrame({'Date_type':data_type,'Trend':Trend,'Seasonal':Seasonal,'Stationary':Stationary,'model':model_type},index=[i])
+    i=i+1
+    new_data=new_data.append(data,ignore_index=True)
 
-seasonal=check_seasonality(data)
+new_data.to_csv('Data.csv',index=False)
+    
 
-if(seasonal==1):
-    SARIMA(data)
 
-#plt.plot(data)
-#plt.show()
+
